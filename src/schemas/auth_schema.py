@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 
@@ -29,3 +29,17 @@ class UserResponse(UserBase):
         json_encoders = {
             datetime: lambda value: value.strftime("%Y-%m-%d %H:%M:%S")
         }
+
+
+class UserFullResponse(UserResponse):
+    is_admin: bool
+
+
+class LoginUser(BaseModel):
+    email: EmailStr = Field(alias="username")
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
