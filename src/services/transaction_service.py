@@ -1,10 +1,7 @@
-from sqlalchemy.orm import Session
-
 from src.repositories.transaction_repo import TransactionRepository
 
 
 class TransactionService:
-
     def __init__(self, db):
         self.transaction_repo = TransactionRepository(db)
 

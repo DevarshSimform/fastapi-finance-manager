@@ -1,10 +1,9 @@
 from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, Field
 
 
-
 class UserBase(BaseModel):
-    
     email: EmailStr
     username: str
     firstname: str
@@ -12,13 +11,11 @@ class UserBase(BaseModel):
 
 
 class RegisterUser(UserBase):
-
     password: str
     confirm_password: str
 
 
 class UserResponse(UserBase):
-
     id: int
     # is_admin: bool
     created_at: datetime
@@ -26,9 +23,7 @@ class UserResponse(UserBase):
     last_login: datetime | None
 
     class Config:
-        json_encoders = {
-            datetime: lambda value: value.strftime("%Y-%m-%d %H:%M:%S")
-        }
+        json_encoders = {datetime: lambda value: value.strftime("%Y-%m-%d %H:%M:%S")}
 
 
 class UserFullResponse(UserResponse):

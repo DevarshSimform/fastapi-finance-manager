@@ -1,15 +1,14 @@
-import jwt
-from decouple import config
 from datetime import datetime, timedelta, timezone
+
+import jwt
 from passlib.context import CryptContext
 
-from src.configurations import settings
+from src.configurations.settings import settings
 
-
-SECRET_KEY = config("SECRET_KEY")
-ALGORITHM = config("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
-
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+EMAIL_TOKEN_EXPIRE_MINUTES = 10
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -34,7 +33,7 @@ def generate_token(data: dict, expires_delta: int | None = None):
 
 
 def create_access_token(data: dict):
-    return generate_token(data, ACCESS_TOKEN_EXPIRE_MINUTES)    
+    return generate_token(data, ACCESS_TOKEN_EXPIRE_MINUTES)
 
 
 def get_payload(token: str) -> dict:
@@ -45,3 +44,7 @@ def get_payload(token: str) -> dict:
         pass
     except jwt.InvalidTokenError:
         pass
+
+
+def create_email_token(data: dict):
+    return generate_token(data, EMAIL_TOKEN_EXPIRE_MINUTES)

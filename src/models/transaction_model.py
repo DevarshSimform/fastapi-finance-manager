@@ -1,24 +1,27 @@
-from enum import Enum as PyEnum
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Enum as SQLEnum
+from enum import Enum as PyEnum
+
+from sqlalchemy import Boolean, Column, DateTime
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import Float, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from src.configurations.database import Base
 
 
 class SourceEnum(str, PyEnum):
-    cash = "cash"
-    card = "card"
-    bank_payment = "bank_payment"
+    CASH = "cash"
+    CARD = "card"
+    BANK_PAYMENT = "bank_payment"
+
 
 class TypeEnum(str, PyEnum):
-    income = "income"
-    expense = "expense"
+    INCOME = "income"
+    EXPENSE = "expense"
 
 
 class Transaction(Base):
-
-    __tablename__ = 'transactions'
+    __tablename__ = "transactions"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))

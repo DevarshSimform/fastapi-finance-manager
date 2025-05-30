@@ -1,15 +1,14 @@
 from datetime import datetime
-from decimal import Decimal
-from pydantic import BaseModel, field_validator, model_validator
+
+from pydantic import BaseModel
 
 from src.models.transaction_model import SourceEnum, TypeEnum
 
 
 class BaseTransaction(BaseModel):
-
     category_id: int
     source: SourceEnum
-    type : TypeEnum
+    type: TypeEnum
     amount: float
 
     # @model_validator(mode='before')
@@ -22,7 +21,6 @@ class CreateTransaction(BaseTransaction):
 
 
 class TransactionResponse(BaseTransaction):
-
     id: int
     user_id: int
     updated_at: datetime | None
