@@ -15,6 +15,13 @@ class RegisterUser(UserBase):
     confirm_password: str
 
 
+class UserDetail(UserBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
 class UserResponse(UserBase):
     id: int
     # is_admin: bool

@@ -1,9 +1,18 @@
 from datetime import datetime
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, Column, DateTime
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+)
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import Float, ForeignKey, Integer
+from sqlalchemy import (
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.orm import relationship
 
 from src.configurations.database import Base
@@ -31,6 +40,7 @@ class Transaction(Base):
     type = Column(SQLEnum(TypeEnum, name="type_enum"), nullable=False)
 
     amount = Column(Float)
+    description = Column(String(255))
     is_deleted = Column(Boolean, default=False, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=None, onupdate=datetime.now())
     created_at = Column(DateTime(timezone=True), default=datetime.now())

@@ -12,6 +12,13 @@ class CreateCategory(BaseCategory):
     # user_id: int
 
 
+class CategoryDetail(BaseCategory):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
 class CategoryResponse(BaseCategory):
     id: int
     user_id: int
