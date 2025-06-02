@@ -15,12 +15,10 @@ class CreateCategory(BaseCategory):
 
     @field_validator("name", mode="before")
     def improve_category_name(cls, value):
-        print("-----------in field validator mode = before")
         return re.sub(r"\s+", " ", value.strip()).lower()
 
     @field_validator("name")
     def validate_name(cls, value):
-        print("-------------in validate-name", value)
         if not re.fullmatch(cls.pattern, value):
             raise ValueError(
                 "Category name must be 3 to 50 characters long, and only include lowercase letters, numbers, dashes, and single spaces."
