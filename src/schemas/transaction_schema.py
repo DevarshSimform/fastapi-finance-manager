@@ -1,6 +1,7 @@
+import re
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from src.models.transaction_model import SourceEnum, TypeEnum
 from src.schemas.auth_schema import UserDetail
@@ -16,7 +17,18 @@ class BaseTransaction(BaseModel):
 
 
 class CreateTransaction(BaseTransaction):
-    pass
+
+    @model_validator(mode="after")
+    def normalize_fields(self):
+        # Trim, reduce multiple spaces to single space, and lowercase
+        self.description = re.sub(r"\s+", " ", self.description.strip()).lower()
+
+        # Normalize amount based on transaction type
+        if self.type == TypeEnum.EXPENSE:
+            self.amount = -abs(self.amount)
+        else:
+            self.amount = abs(self.amount)
+        return self
 
 
 class TransactionListResponse(BaseTransaction):
@@ -29,12 +41,10 @@ class TransactionResponse(BaseTransaction):
     user_id: int
     updated_at: datetime | None
     created_at: datetime
-    # amount: float
 
     class Config:
         json_encoders = {
             datetime: lambda value: value.strftime("%Y-%m-%d %H:%M:%S"),
-            # Decimal: lambda v: format(v, '.2f')
         }
 
 
@@ -44,7 +54,6 @@ class TransactionDetail(BaseTransaction):
     category: CategoryDetail
     updated_at: datetime | None
     created_at: datetime
-    # amount: float
 
     class Config:
         from_attributes = True
@@ -53,9 +62,21 @@ class TransactionDetail(BaseTransaction):
         }
 
 
-class TransactionUpdate(BaseModel):
+class TransactionUpdate(BaseTransaction):
     source: SourceEnum | None
     type: TypeEnum | None
     amount: float | None
     description: str | None
     category_id: int | None
+
+    @model_validator(mode="after")
+    def to_lowercase(self):
+        # Ensure description is lowercase
+        self.description = self.description.lower()
+
+        # Normalize amount based on transaction type
+        if self.type == TypeEnum.EXPENSE:
+            self.amount = -abs(self.amount)
+        else:
+            self.amount = abs(self.amount)
+        return self

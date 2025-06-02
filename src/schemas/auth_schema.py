@@ -1,6 +1,8 @@
+import re
 from datetime import datetime
+from typing import ClassVar
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 class UserBase(BaseModel):
@@ -13,6 +15,22 @@ class UserBase(BaseModel):
 class RegisterUser(UserBase):
     password: str
     confirm_password: str
+
+    password_regex: ClassVar[str] = (
+        r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+    )
+
+    @model_validator(mode="after")
+    def match_passwords(self):
+        if self.password != self.confirm_password:
+            raise ValueError("Password and Confirm-Password does not match")
+        return self
+
+    @field_validator("password")
+    def validate_password(cls, value):
+        if not re.fullmatch(cls.password_regex, value):
+            raise ValueError("Enter valid password")
+        return value
 
 
 class UserDetail(UserBase):

@@ -9,15 +9,14 @@ class TransactionRepository:
         self.db = db
 
     def create(self, user_id, data: CreateTransaction) -> TransactionResponse:
-        # transaction = Transaction(
-        #     **data.model_dump(exclude={"category_id"}),
-        #     user_id=user_id,
-        #     category_id=data.category_id,
-        # )
-        # self.db.add(transaction)
-        # self.db.commit()
-        # self.db.refresh(transaction)
-        transaction = self.get_transaction_by_id(1)
+        transaction = Transaction(
+            **data.model_dump(exclude={"category_id"}),
+            user_id=user_id,
+            category_id=data.category_id,
+        )
+        self.db.add(transaction)
+        self.db.commit()
+        self.db.refresh(transaction)
         return transaction
 
     def get_transactions(self, current_user_id):
@@ -60,8 +59,6 @@ class TransactionRepository:
         return transaction
 
     def soft_delete_transaction_by_id(self, current_user_id, transaction_id):
-        transaction = self.get_transaction_by_id(transaction_id)
-        if not transaction.user_id == current_user_id:
-            pass
+        transaction = self.get_transaction_by_id(current_user_id, transaction_id)
         transaction.is_deleted = True
         self.db.commit()
