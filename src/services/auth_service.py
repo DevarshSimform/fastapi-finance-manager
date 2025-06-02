@@ -11,30 +11,29 @@ class AuthService:
 
     def create(self, user_data):
         if self.auth_repo.is_user_exist(user_data.email):
-            pass
-        return self.auth_repo.create(user_data)
+            return {"message": "User already exists"}
+        self.auth_repo.create(user_data)
+        email_token = create_email_token(data={"sub": user_data.email})
+        print(email_token)
+        # send mail here
+        return {
+            "message": "User created. Please check your email to verify your account."
+        }
 
     def login_user(self, user: LoginUser) -> Token:
         user = self.auth_repo.authenticate_user(user)
         if not user:
-            pass
+            return {"message": "User not exists"}
         access_token = create_access_token(data={"sub": user.email})  # nosec
         return Token(access_token=access_token, token_type="bearer")  # nosec
 
-    def create_demo(self, user_data):
-        if self.auth_repo.is_user_exist(user_data.email):
-            pass
-        # create user here
-        email_token = create_email_token(data={"sub": user_data.email})
-        print(email_token)
-        # send mail here
-        return {"msg": "User created. Please check your email to verify your account."}
-
-    def verify(self, token):
+    def verify_user(self, token):
         payload = get_payload(token)
-        email = payload.get("sub")
-
-        payload: str = get_payload(token)
+        email: str = payload.get("sub")
         if email is None:
-            pass
-        # self.auth_repo
+            return {"message": "User token expired login again"}
+
+        if not self.auth_repo.is_user_inactive(email):
+            return {"message": "User not exists"}
+        self.auth_repo.activate_user(email)
+        return {"message": "User is verified and active now"}

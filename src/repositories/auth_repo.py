@@ -38,6 +38,16 @@ class AuthRepository:
         self.db.commit()
         return user
 
-    def get_inactive_user(self, email):
-        pass
-        # return self.db.query(User).filter_by(email=email)
+    def is_user_inactive(self, email):
+        return (
+            True
+            if self.db.query(User.email).filter(
+                User.email == email, User.is_active is False
+            )
+            else False
+        )
+
+    def activate_user(self, email):
+        user = self.get_user_by_email(email)
+        user.is_active = True
+        self.db.commit()
