@@ -43,3 +43,7 @@ class AuthService:
             return {"message": "User not exists"}
         self.auth_repo.activate_user(email)
         return {"message": "User is verified and active now"}
+
+    def get_profile(self, email):
+        user = self.auth_repo.get_user_by_email(email)
+        return user
