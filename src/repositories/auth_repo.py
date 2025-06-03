@@ -24,7 +24,11 @@ class AuthRepository:
 
     def is_user_exist(self, email):
         return (
-            True if self.db.query(User.email).filter_by(email=email).first() else False
+            True
+            if self.db.query(User.email)
+            .filter(User.email == email, User.is_active.is_(True))
+            .first()
+            else False
         )
 
     def get_user_by_email(self, email):
@@ -42,7 +46,7 @@ class AuthRepository:
         return (
             True
             if self.db.query(User.email).filter(
-                User.email == email, User.is_active is False
+                User.email == email, User.is_active.is_(False)
             )
             else False
         )

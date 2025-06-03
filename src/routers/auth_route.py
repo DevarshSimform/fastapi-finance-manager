@@ -11,9 +11,9 @@ router = APIRouter()
 
 
 @router.post("/register")
-def register_user(user: RegisterUser, db: Session = Depends(get_db)):
+async def register_user(user: RegisterUser, db: Session = Depends(get_db)):
     service = AuthService(db)
-    return service.create(user)
+    return await service.create(user)
 
 
 @router.post("/login", response_model=Token, deprecated=True)

@@ -3,19 +3,25 @@ from sqlalchemy.orm import Session
 from src.repositories.auth_repo import AuthRepository
 from src.schemas.auth_schema import LoginUser, Token
 from src.utils.auth_util import create_access_token, create_email_token, get_payload
+from src.utils.email_util import send_verification_email_task
 
 
 class AuthService:
     def __init__(self, db: Session):
         self.auth_repo = AuthRepository(db)
 
-    def create(self, user_data):
+    async def create(self, user_data):
         if self.auth_repo.is_user_exist(user_data.email):
             return {"message": "User already exists"}
         self.auth_repo.create(user_data)
         email_token = create_email_token(data={"sub": user_data.email})
         print(email_token)
-        # send mail here
+        data = {
+            "verification_url": f"http://localhost:8000/api/auth/verify-email/?token={email_token}",
+            "username": user_data.username,
+        }
+        send_verification_email_task.delay("pateldc014@gmail.com", data)
+
         return {
             "message": "User created. Please check your email to verify your account."
         }
