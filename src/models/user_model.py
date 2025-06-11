@@ -27,3 +27,7 @@ class User(Base):
 
     # Relationship to transactions
     transactions = relationship("Transaction", back_populates="user")
+
+    @classmethod
+    def filter_active(cls, db):
+        return db.query(cls).filter(cls.is_deleted.is_(False))

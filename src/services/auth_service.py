@@ -41,6 +41,7 @@ class AuthService:
 
         if not self.auth_repo.is_user_inactive(email):
             return {"message": "User not exists"}
+        print("----------------debuging---------------", email)
         self.auth_repo.activate_user(email)
         return {"message": "User is verified and active now"}
 

@@ -43,4 +43,5 @@ def get_user_profile(
 ):
     user, db = user_with_db
     service = AuthService(db)
+    print("--------email------------", user.email)
     return service.get_profile(user.email)

@@ -23,20 +23,29 @@ class AuthRepository:
         return user
 
     def is_user_exist(self, email):
+        # return (
+        #     True
+        #     if self.db.query(User.email)
+        #     .filter(User.email == email, User.is_active.is_(True))
+        #     .first()
+        #     else False
+        # )
         return (
             True
-            if self.db.query(User.email)
-            .filter(User.email == email, User.is_active.is_(True))
-            .first()
+            if User.filter_active(self.db).filter(User.email == email).first()
             else False
         )
 
     def get_user_by_email(self, email):
-        return (
-            self.db.query(User)
-            .filter(User.email == email, User.is_active.is_(True))
-            .first()
-        )
+        # return (
+        #     self.db.query(User)
+        #     .filter(User.email == email, User.is_active.is_(True))
+        #     .first()
+        # )
+        return User.filter_active(self.db).filter(User.email == email).first()
+
+    def get_raw_user_by_email(self, email):
+        return self.db.query(User).filter(User.email == email).first()
 
     def authenticate_user(self, user_login: LoginUser):
         user = self.db.query(User).filter_by(email=user_login.email).first()
@@ -56,6 +65,6 @@ class AuthRepository:
         )
 
     def activate_user(self, email):
-        user = self.get_user_by_email(email)
+        user = self.get_raw_user_by_email(email)
         user.is_active = True
         self.db.commit()
