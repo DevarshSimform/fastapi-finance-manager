@@ -1,9 +1,17 @@
+import json
+
+from fastapi import HTTPException
+from kafka import KafkaProducer
 from sqlalchemy.orm import Session
 
 from src.repositories.auth_repo import AuthRepository
 from src.schemas.auth_schema import LoginUser, Token
 from src.utils.auth_util import create_access_token, create_email_token, get_payload
-from src.utils.email_util import send_verification_email_task
+
+producer = KafkaProducer(
+    bootstrap_servers="localhost:9092",
+    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+)
 
 
 class AuthService:
@@ -17,10 +25,15 @@ class AuthService:
         email_token = create_email_token(data={"sub": user_data.email})
         print(email_token)
         data = {
+            "to_email": user_data.email,
             "verification_url": f"http://localhost:8000/api/auth/verify-email/?token={email_token}",
             "username": user_data.username,
         }
-        send_verification_email_task.delay("pateldc014@gmail.com", data)
+        try:
+            producer.send("2fa_verification_requested", value=data)
+            producer.flush()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Kafka error: {e}")
 
         return {
             "message": "User created. Please check your email to verify your account."
