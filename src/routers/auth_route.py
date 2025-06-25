@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Query
+from fastapi import APIRouter, Depends, Form, Query, Request
 from sqlalchemy.orm import Session
 
 from src.configurations.database import get_db
@@ -18,9 +18,9 @@ router = APIRouter()
 
 
 @router.post("/register")
-async def register_user(user: RegisterUser, db: Session = Depends(get_db)):
+def register_user(user: RegisterUser, request: Request, db: Session = Depends(get_db)):
     service = AuthService(db)
-    return await service.create(user)
+    return service.create(user, request)
 
 
 @router.post("/login", response_model=Token, deprecated=True)
@@ -31,7 +31,7 @@ def login_user(
     return service.login_user(user)
 
 
-@router.get("/verify-email")
+@router.get("/verify-email", name="verify_email")
 def verify_email(token: str = Query(...), db: Session = Depends(get_db)):
     service = AuthService(db)
     return service.verify_user(token)

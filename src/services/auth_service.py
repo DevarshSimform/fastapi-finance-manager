@@ -18,19 +18,22 @@ class AuthService:
     def __init__(self, db: Session):
         self.auth_repo = AuthRepository(db)
 
-    async def create(self, user_data):
+    def create(self, user_data, request):
         if self.auth_repo.is_user_exist(user_data.email):
             return {"message": "User already exists"}
         self.auth_repo.create(user_data)
         email_token = create_email_token(data={"sub": user_data.email})
         print(email_token)
+        verification_url = (
+            str(request.url_for("verify_email")) + f"?token={email_token}"
+        )
         data = {
-            "to_email": user_data.email,
-            "verification_url": f"http://localhost:8000/api/auth/verify-email/?token={email_token}",
+            "verification_url": verification_url,
             "username": user_data.username,
         }
+        payload = {"to_email": user_data.email, "data": data}
         try:
-            producer.send("2fa_verification_requested", value=data)
+            producer.send("2fa_verification_requested", value=payload)
             producer.flush()
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Kafka error: {e}")
