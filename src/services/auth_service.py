@@ -1,4 +1,5 @@
 import json
+import os
 
 from fastapi import HTTPException
 from kafka import KafkaProducer
@@ -8,9 +9,14 @@ from src.repositories.auth_repo import AuthRepository
 from src.schemas.auth_schema import LoginUser, Token
 from src.utils.auth_util import create_access_token, create_email_token, get_payload
 
+bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+
 producer = KafkaProducer(
-    bootstrap_servers="localhost:9092",
+    # If want to run fastapi application and notification service in localhost then replace hostname kafka to localhost - To resolve KafkaTimeoutError
+    bootstrap_servers=bootstrap_servers,
     value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+    # to resolve NoBrokersAvailable kafka error
+    api_version=(7, 0, 1),
 )
 
 

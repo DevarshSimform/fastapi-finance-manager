@@ -16,26 +16,29 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Add KafkaProducer bootstrap_servers hostname in advertised_listeners
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      # KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  # fastapi:
-  #   build: .
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     - kafka
-  #     - notification-service
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+  fastapi:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka
+    env_file:
+      - .env
+    environment:
+    # default value is localhost so overriding bootstrap_servers with hostname kafka to run into seperate container.
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
-  # notification-service:
-  #   build: .
-  #   command: ["python", "notification_service.py"]
-  #   depends_on:
-  #     - kafka
-  #   environment:
-  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+  notification-service:
+    build: .
+    command: ["python3", "notification_service.py"]
+    depends_on:
+      - kafka
+      - fastapi
+    environment:
+    # same as fastapi
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
