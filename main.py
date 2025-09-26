@@ -1,4 +1,5 @@
 import uvicorn
+from debug_toolbar.middleware import DebugToolbarMiddleware
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -6,9 +7,10 @@ from src.configurations.database import Base, engine
 from src.configurations.settings import settings
 from src.routers import auth_route, category_route, transaction_route
 
-app = FastAPI(title="Finance Manager API", root_path="/api")
+app = FastAPI(title="Finance Manager API", root_path="/api", debug=True)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET_KEY)
+app.add_middleware(DebugToolbarMiddleware)
 
 app.include_router(auth_route.router, prefix="/auth", tags=["Auth"])
 app.include_router(category_route.router, prefix="/category", tags=["Category"])
