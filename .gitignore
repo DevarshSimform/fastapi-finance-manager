@@ -14,3 +14,7 @@ wheels/
 
 # sqliate database file
 *.db
+
+# Log files
+*.log
+logs/

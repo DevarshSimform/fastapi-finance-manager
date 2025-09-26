@@ -1,13 +1,25 @@
 import re
 from datetime import datetime
-from typing import ClassVar
+from enum import Enum
+from typing import ClassVar, Literal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
+class OAuthProvider(str, Enum):
+    GOOGLE = "google"
+    # GITHUB = "github"
+    # TWITTER = "twitter"
+
+
+class TokenType(str, Enum):
+    ACCESS = "access"
+    EMAIL_VERIFICATION = "email_verification"
+    BEARER = "bearer"
+
+
 class UserBase(BaseModel):
     email: EmailStr
-    username: str
     firstname: str
     lastname: str
 
@@ -27,10 +39,26 @@ class RegisterUser(UserBase):
         return self
 
     @field_validator("password")
+    @classmethod
     def validate_password(cls, value):
         if not re.fullmatch(cls.password_regex, value):
             raise ValueError("Enter valid password")
         return value
+
+
+class OAuthUser(UserBase):
+    """Schema for creating/fetching users via OAuth providers."""
+
+    # OAuth fields
+    oauth_provider: Literal["google", "none"]
+    oauth_id: str  # e.g., Google "sub" or GitHub "id"
+
+    class Config:
+        from_attributes = True
+
+
+class RegisterResponse(BaseModel):
+    message: str
 
 
 class UserDetail(UserBase):
@@ -48,11 +76,8 @@ class UserResponse(UserBase):
     last_login: datetime | None
 
     class Config:
+        from_attributes = True
         json_encoders = {datetime: lambda value: value.strftime("%Y-%m-%d %H:%M:%S")}
-
-
-class UserFullResponse(UserResponse):
-    is_admin: bool
 
 
 class LoginUser(BaseModel):
@@ -63,3 +88,7 @@ class LoginUser(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class TokenOauthResponse(Token):
+    user: UserResponse

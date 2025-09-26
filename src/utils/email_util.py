@@ -27,6 +27,7 @@ async def send_verification_url(to_email: str, data: dict):
         recipients=[to_email],
         template_body=data,
         subtype="html",
+        from_email=conf.MAIL_FROM,
     )
     fm = FastMail(conf)
     await fm.send_message(message, template_name="verify_user_template.html")
@@ -35,5 +36,15 @@ async def send_verification_url(to_email: str, data: dict):
 @shared_task
 def send_verification_email_task(to_email: str, data: dict):
 
-    # to use this function, start celery using command: uv run celery -A src.utils.celery_worker.celery worker --loglevel=info
-    asyncio.run(send_verification_url(to_email, data))
+    # to use this function, start celery using command: uv run celery -A src.utils.celery_worker.celery worker --concurrency=4 --loglevel=info
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:  # no loop in current thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    loop.run_until_complete(send_verification_url(to_email, data))
+
+
+# When need to specify queue name
+# uv run celery -A src.utils.celery_worker.celery worker --concurrency=4 --loglevel=info
+# send_verification_email_task.apply_async(args=[user_data.email, data], queue="email")

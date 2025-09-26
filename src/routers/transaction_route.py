@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from src.dependences.auth_dependency import get_current_user_with_db
-from src.schemas.auth_schema import UserFullResponse
+from src.schemas.auth_schema import UserResponse
 from src.schemas.transaction_schema import (
     CreateTransaction,
     TransactionDetail,
@@ -18,7 +18,7 @@ router = APIRouter()
 @router.post("/create", response_model=TransactionResponse)
 def create_transaction(
     transaction_data: CreateTransaction,
-    user_with_db: tuple[UserFullResponse, Session] = Depends(get_current_user_with_db),
+    user_with_db: tuple[UserResponse, Session] = Depends(get_current_user_with_db),
 ):
     user, db = user_with_db
     service = TransactionService(db)
@@ -27,7 +27,7 @@ def create_transaction(
 
 @router.get("/list", response_model=list[TransactionListResponse])
 def list_transactions(
-    user_with_db: tuple[UserFullResponse, Session] = Depends(get_current_user_with_db),
+    user_with_db: tuple[UserResponse, Session] = Depends(get_current_user_with_db),
 ):
     user, db = user_with_db
     service = TransactionService(db)
@@ -39,7 +39,7 @@ def list_transactions(
 )
 def get_transaction(
     id: int,
-    user_with_db: tuple[UserFullResponse, Session] = Depends(get_current_user_with_db),
+    user_with_db: tuple[UserResponse, Session] = Depends(get_current_user_with_db),
 ):
     user, db = user_with_db
     service = TransactionService(db)
@@ -50,7 +50,7 @@ def get_transaction(
 def update_transaction(
     id: int,
     data: TransactionUpdate,
-    user_with_db: tuple[UserFullResponse, Session] = Depends(get_current_user_with_db),
+    user_with_db: tuple[UserResponse, Session] = Depends(get_current_user_with_db),
 ):
     user, db = user_with_db
     service = TransactionService(db)
@@ -60,7 +60,7 @@ def update_transaction(
 @router.delete("/{id}")
 def delete_transaction(
     id: int,
-    user_with_db: tuple[UserFullResponse, Session] = Depends(get_current_user_with_db),
+    user_with_db: tuple[UserResponse, Session] = Depends(get_current_user_with_db),
 ):
     user, db = user_with_db
     service = TransactionService(db)
