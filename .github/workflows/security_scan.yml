@@ -1,0 +1,117 @@
+name: Full Code & History Scan on Develop Branch
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' || github.event.pull_request.base.ref == 'develop'
+
+    steps:
+    # -------- Checkout Code with Full Git History --------
+    - name: Checkout code with full git history
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # -------- Gitleaks: Git History Secrets Scan --------
+    - name: Run Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      with:
+        args: "detect --verbose --redact --report-path=gitleaks-report.json"
+
+    # -------- Trivy: Filesystem Vulnerability Scan --------
+    - name: Install Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        ignore-unfixed: true
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        output: 'trivy-report.txt'
+        format: 'table'
+        scan-ref: '.'
+
+    # -------- Upload Reports --------
+    - name: Upload Gitleaks Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: gitleaks-report
+        path: gitleaks-report.json
+
+    - name: Upload Trivy Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: trivy-report
+        path: trivy-report.txt
+
+    # -------- Slack Notification --------
+    - name: Send Slack Notification
+      if: always()  # Ensure this step runs even if scans fail
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        payload: |
+          {
+            "text": "🔒 Security Scan Report - Develop Branch",
+            "attachments": [
+              {
+                "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "value": "${{ job.status }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Repository",
+                    "value": "${{ github.repository }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "${{ github.ref_name }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Commit Hash",
+                    "value": "${{ github.sha }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Commit Message",
+                    "value": "${{ github.event.head_commit.message || 'N/A' }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Commit Author",
+                    "value": "${{ github.event.head_commit.author.name || github.actor }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Triggered By",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Gitleaks Report",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download Gitleaks Report>",
+                    "short": false
+                  },
+                  {
+                    "title": "Trivy Report",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download Trivy Report>",
+                    "short": false
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
